@@ -502,6 +502,7 @@ function ReferenceModal({ reference, onClose }: { reference: SourceReference | n
 
 function LabPanel({ module }: { module: ChapterModule }) {
   const Icon = iconMap[module.lab.type];
+  const guide = labExperienceGuide[module.lab.type];
   return (
     <section className="lab-card">
       <div className="lab-head">
@@ -512,10 +513,77 @@ function LabPanel({ module }: { module: ChapterModule }) {
         <div className="lab-icon"><Icon size={22} /></div>
       </div>
       <p className="lab-premise">{module.lab.premise}</p>
+      {guide && (
+        <div className="lab-experience-map" aria-label="实验结构">
+          <div>
+            <span>对象</span>
+            <strong>{guide.object}</strong>
+          </div>
+          <div>
+            <span>调节</span>
+            <strong>{guide.control}</strong>
+          </div>
+          <div>
+            <span>反馈</span>
+            <strong>{guide.feedback}</strong>
+          </div>
+        </div>
+      )}
+      <p className="lab-task">{module.lab.task}</p>
       <LabSwitch type={module.lab.type} />
     </section>
   );
 }
+
+const labExperienceGuide: Record<LabType, { object: string; control: string; feedback: string }> = {
+  "route-switch": { object: "自动分拣线", control: "三级道岔", feedback: "送达仓位/分支匹配" },
+  fiber: { object: "人造纤维反应釜", control: "温度/压力/催化剂", feedback: "目标产率/副产物" },
+  capacity: { object: "大网捕获空间", control: "目标宽度/对象波动", feedback: "命中率/可控性" },
+  "random-search": { object: "未知参数格子", control: "随机试错", feedback: "尝试次数/重复成本" },
+  "memory-search": { object: "抽屉搜索", control: "记忆排除/误判", feedback: "剩余候选/累计成本" },
+  precipitation: { object: "金属沉淀液", control: "沉淀顺序", feedback: "纯度/目标损失" },
+  "reactor-feedback": { object: "在线粘度反应釜", control: "传感器/增益/采样", feedback: "偏差曲线/闭环状态" },
+  "feedback-amplifier": { object: "逐步逼近空间", control: "每轮缩小比例", feedback: "剩余空间/放大倍数" },
+  "positive-loop": { object: "正反馈回路", control: "耦合强度/阻尼", feedback: "偏差是否失控" },
+  "knowing-space": { object: "隐藏物品集合", control: "逐条线索", feedback: "剩余候选数" },
+  "signal-channel": { object: "信号传输通道", control: "通道形式/噪声", feedback: "清晰度/损失" },
+  "receiver-meaning": { object: "同一告警信号", control: "接收者角色", feedback: "语义匹配/可行动性" },
+  "channel-capacity": { object: "警报通道", control: "源状态/警报级别", feedback: "表达覆盖率" },
+  filtering: { object: "证据链", control: "重复或互证", feedback: "结论可靠度" },
+  "storage-chain": { object: "历史信息载体", control: "冗余/腐蚀/解码", feedback: "恢复率" },
+  "reasoning-space": { object: "集合与概率判断", control: "证据强度/基线", feedback: "更新后概率" },
+  "organization-space": { object: "三人空间关系", control: "组织规则", feedback: "联系可能性" },
+  "causal-network": { object: "因果网络", control: "连接强度/扩散", feedback: "影响范围" },
+  "isolated-system": { object: "系统边界", control: "边界半径/扰动", feedback: "解释力/漏因风险" },
+  "steady-structure": { object: "稳态势阱", control: "恢复力/扰动", feedback: "是否回稳" },
+  "prediction-model": { object: "未来预测带", control: "稳定度/冲击", feedback: "预测区间宽窄" },
+  "equilibrium-stability": { object: "平衡板", control: "拉回力/扰动", feedback: "偏离或回中心" },
+  oscillation: { object: "反馈示波器", control: "增益/延迟", feedback: "振幅是否放大" },
+  ultrastability: { object: "策略搜索系统", control: "搜索/结构变化", feedback: "再稳定层级" },
+  "system-evolution": { object: "演化分支树", control: "变异/选择", feedback: "保留路径" },
+  "system-collapse": { object: "自繁殖链", control: "复制因子/约束", feedback: "扩散或崩溃" },
+  "self-organization": { object: "局部个体网格", control: "规则/噪声", feedback: "整体秩序" },
+  "intelligence-amplifier": { object: "智力放大流水线", control: "工具倍数/校验", feedback: "放大质量" },
+  "qualitative-problem": { object: "质变路径", control: "压力/韧性", feedback: "飞跃或渐变" },
+  "leap-gradual": { object: "过渡轨道", control: "阈值/中间态", feedback: "跳变方式" },
+  "stable-quality": { object: "结构分子", control: "结构强度/干扰", feedback: "性质保持" },
+  "potential-well": { object: "势阱小球", control: "势阱深度/扰动", feedback: "回落或逃逸" },
+  "phase-transition": { object: "受力木块", control: "推力/稳定余量", feedback: "倾斜或翻倒" },
+  "detect-leap": { object: "性质边界", control: "变化速度/恢复力", feedback: "波动或飞跃" },
+  "transition-condition": { object: "质变条件", control: "速度/中间态", feedback: "路径倾向" },
+  "catastrophe-node": { object: "尖点突变图", control: "控制量/结构张力", feedback: "稳定分支/跳变带" },
+  overcorrection: { object: "矫正轨道", control: "修正力度/旧态吸引", feedback: "回旧态/过冲/收敛" },
+  coexistence: { object: "双吸引域", control: "分裂强度/压力", feedback: "两极是否共存" },
+  "common-mission": { object: "质变分析模板", control: "机制/参数", feedback: "分析完整度" },
+  "black-box": { object: "未知黑箱", control: "输入刺激/输出读取", feedback: "识别能力" },
+  "epistemology-model": { object: "认识反馈环", control: "反馈/更新", feedback: "认知误差下降" },
+  "observability-control": { object: "变量矩阵", control: "可观察/可控制", feedback: "认识上限" },
+  "theory-clarity": { object: "理论清晰度清单", control: "变量/预测", feedback: "可检验度" },
+  "convergence-speed": { object: "模型收敛曲线", control: "反馈质量/频率", feedback: "误差下降速度" },
+  overfeedback: { object: "反馈节奏仪", control: "频率/噪声", feedback: "追噪声风险" },
+  decidability: { object: "判定阈值", control: "证据/规则", feedback: "可否下结论" },
+  "science-human": { object: "人机协作秤", control: "自动化/审查", feedback: "效率与责任平衡" },
+};
 
 function LabSwitch({ type }: { type: LabType }) {
   if (type === "route-switch") return <RouteSwitchLab />;
@@ -841,6 +909,7 @@ function PositiveLoopLab() {
     <div className="lab-body">
       <Dial label="耦合强度" value={coupling} setValue={setCoupling} />
       <Dial label="阻尼" value={damping} setValue={setDamping} />
+      <PositiveLoopSystem coupling={coupling} damping={damping} final={final} />
       <LineChart points={points} target={60} danger />
       <div className="scenario-tabs"><span>军备竞赛</span><span>再生回路</span><span>心力衰竭</span><span>爆炸热反馈</span></div>
       <p className="lab-result">{final > 70 ? "偏差超过阈值，系统进入恶性循环。" : "阻尼足够时，正反馈放大被限制在可控范围内。"}</p>
@@ -922,6 +991,7 @@ function ChannelCapacityLab() {
         <input type="range" min="2" max="12" value={levels} onChange={(event) => setLevels(Number(event.target.value))} />
         <strong>{levels}</strong>
       </label>
+      <ChannelEncoder states={states} levels={levels} />
       <Bar label="表达覆盖" value={covered} tone={covered >= 100 ? "green" : "amber"} />
       <div className="metrics-grid">
         <Metric label="状态数" value={`${states}`} />
@@ -963,6 +1033,7 @@ function StorageChainLab() {
       <Dial label="载体腐蚀" value={damage} setValue={setDamage} />
       <Dial label="解码能力" value={decoder} setValue={setDecoder} />
       <div className="storage-chain"><span>秦王朝 A</span><i>史书/文物 B</i><span>历史学家 C</span></div>
+      <StorageArtifacts redundancy={redundancy} damage={damage} decoder={decoder} />
       <Metric label="信息恢复率" value={`${Math.round(recovery)}%`} tone={recovery > 70 ? "green" : "amber"} />
     </div>
   );
@@ -1013,8 +1084,25 @@ function ConceptLabFrame({
   const [b, setB] = useState(36);
   const config = systemLabConfig[type] ?? systemLabConfig["causal-network"];
   const value = Math.max(0, Math.min(100, config.compute(a, b)));
+  const guide = labExperienceGuide[type];
   return (
     <div className="lab-body">
+      <div className="control-causality">
+        <div>
+          <span>输入 A</span>
+          <strong>{config.primary}</strong>
+        </div>
+        <i>+</i>
+        <div>
+          <span>输入 B</span>
+          <strong>{config.secondary}</strong>
+        </div>
+        <i>→</i>
+        <div>
+          <span>观察结果</span>
+          <strong>{guide?.feedback ?? scoreLabel}</strong>
+        </div>
+      </div>
       <Dial label={config.primary} value={a} setValue={setA} />
       <Dial label={config.secondary} value={b} setValue={setB} />
       {children({ a, b, setA, setB, value, config })}
@@ -2000,8 +2088,11 @@ function Dial({ label, value, setValue }: { label: string; value: number; setVal
   return (
     <label className="slider-row">
       <span>{label}</span>
-      <input type="range" min="0" max="100" value={value} onChange={(event) => setValue(Number(event.target.value))} />
-      <strong>{value}</strong>
+      <div className="range-control">
+        <input type="range" min="0" max="100" value={value} onChange={(event) => setValue(Number(event.target.value))} />
+        <small><em>低</em><em>高</em></small>
+      </div>
+      <strong>{value}%</strong>
     </label>
   );
 }
@@ -2086,6 +2177,51 @@ function SignalPipe({ clarity }: { clarity: number }) {
       <span>信息源</span>
       <motion.i animate={{ opacity: clarity / 100, width: `${clarity}%` }} />
       <span>接收者</span>
+    </div>
+  );
+}
+
+function PositiveLoopSystem({ coupling, damping, final }: { coupling: number; damping: number; final: number }) {
+  const heat = Math.min(100, final);
+  return (
+    <div className={`positive-loop-system ${heat > 70 ? "runaway" : ""}`}>
+      <div className="loop-node source">偏差</div>
+      <motion.div className="loop-arrow gain" animate={{ opacity: 0.35 + coupling / 140, scaleX: 0.72 + coupling / 160 }} />
+      <div className="loop-node amplifier">放大器</div>
+      <motion.div className="loop-arrow return" animate={{ opacity: 0.35 + coupling / 140, scaleX: 0.72 + coupling / 160 }} />
+      <div className="loop-node brake">阻尼 {damping}%</div>
+      <div className="heat-column">
+        <motion.i animate={{ height: `${heat}%` }} />
+        <span>失控热度</span>
+      </div>
+    </div>
+  );
+}
+
+function ChannelEncoder({ states, levels }: { states: number; levels: number }) {
+  return (
+    <div className="channel-encoder">
+      <div className="source-states">
+        {Array.from({ length: states }, (_, index) => <i key={index}>S{index + 1}</i>)}
+      </div>
+      <strong>编码</strong>
+      <div className="alarm-levels">
+        {Array.from({ length: levels }, (_, index) => <i key={index}>L{index + 1}</i>)}
+      </div>
+    </div>
+  );
+}
+
+function StorageArtifacts({ redundancy, damage, decoder }: { redundancy: number; damage: number; decoder: number }) {
+  const artifacts = ["竹简", "铭文", "器物", "史书", "遗址", "口传"];
+  const activeCount = Math.max(1, Math.round((redundancy / 100) * artifacts.length));
+  return (
+    <div className="artifact-board">
+      {artifacts.map((item, index) => {
+        const damaged = index * 16 < damage;
+        const decoded = index < activeCount && decoder > 38 + index * 7;
+        return <i className={`${damaged ? "damaged" : ""} ${decoded ? "decoded" : ""}`} key={item}>{item}</i>;
+      })}
     </div>
   );
 }
