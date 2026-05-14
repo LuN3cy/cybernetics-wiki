@@ -410,7 +410,7 @@ const refinedNarratives: Record<string, string[]> = {
   "phase-transition": ["突变常常发生在连续控制参数之后。木块被推时先只是倾斜，超过临界条件后翻倒，状态性质改变。翻倒实验让读者观察连续输入和不连续结果之间的关系。"],
   "detect-leap": ["不是所有大波动都是飞跃。短暂尖峰如果能回到原结构，只是扰动；跨过性质边界并稳定在新结构，才是飞跃。判别器实验把变化速度和恢复能力放在一起比较。"],
   "transition-condition": ["同一种质变可以在不同条件下表现为飞跃或渐变。变化速度、中间态、可逆性和反馈充分度共同决定路径。条件混合器用两根柱子简化这个判断。"],
-  "catastrophe-node": ["关节点不是神秘词，而是稳定状态数目发生变化的区域。多变量接近分岔面时，小移动可能带来大后果。折叠面实验让两个参数同时移动，展示突变边界。"],
+  "catastrophe-node": ["关节点不是神秘词，而是稳定状态数目发生变化的区域。尖点模型可以把“控制量”“结构张力”和“系统状态”放在同一张图上：低张力时只有一条稳定分支，高张力时会出现两个可稳定分支，中间区域不可稳定。右侧实验的重点不是看一个漂亮曲面，而是看路径依赖：同样的控制量，因为来路不同，系统可能停在不同分支，直到越过跳变带才突然换态。"],
   overcorrection: ["矫枉过正的问题要放进稳定结构中看：旧状态吸引力强时，修正太弱会被拉回；修正太猛又会越过目标。弧线实验把旧态、目标、修正力度和旧态吸引放在同一张图上。"],
   coexistence: ["极端共存说明系统不能只看平均值。多吸引域存在时，局部可以稳定在两端，平均指标反而掩盖真实结构。双吸引子实验把两个稳定区域同时展示出来。"],
   "common-mission": ["第四章最后的意义是把哲学问题、数学模型和工程判断接起来。稳定机制、控制参数、关节点、新质态四个词构成一个可以迁移的分析模板。"],
@@ -442,6 +442,9 @@ function CaseCard({ caseStudy, onOpenReference }: { caseStudy: CaseStudy; onOpen
 
 function ReferenceModal({ reference, onClose }: { reference: SourceReference | null; onClose: () => void }) {
   if (!reference) return null;
+  const assetBase = import.meta.env.BASE_URL;
+  const pageImage = `${assetBase}${reference.pageImage}`.replace(/\/{2,}/g, "/");
+  const pdfUrl = `${assetBase}cybernetics-methodology.pdf#page=${reference.pageNumber}`.replace(/\/{2,}/g, "/");
   return (
     <div className="reference-backdrop" role="dialog" aria-modal="true" aria-label="原文依据">
       <HeroCard className="reference-modal">
@@ -454,7 +457,7 @@ function ReferenceModal({ reference, onClose }: { reference: SourceReference | n
         </div>
         <div className="reference-page">{reference.pages}</div>
         <div className="pdf-page-preview">
-          <img src={reference.pageImage} alt={`${reference.section} 原文页 ${reference.pageNumber}`} />
+          <img src={pageImage} alt={`${reference.section} 原文页 ${reference.pageNumber}`} />
           <div className="pdf-mask top" style={{ height: `${reference.highlight.y}%` }} />
           <div
             className="pdf-mask bottom"
@@ -488,6 +491,9 @@ function ReferenceModal({ reference, onClose }: { reference: SourceReference | n
         </div>
         <blockquote>{reference.excerpt}</blockquote>
         <p>{reference.note}</p>
+        <a className="pdf-open-link" href={pdfUrl} target="_blank" rel="noreferrer">
+          打开原始 PDF 第 {reference.pageNumber} 页附近
+        </a>
         <p className="reference-warning">为避免把整本书搬进页面，这里只提供短摘录和页码定位。需要完整上下文时，请回到本地 PDF 对应页附近阅读。</p>
       </HeroCard>
     </div>
@@ -1173,10 +1179,33 @@ function TransitionConditionLab() {
 }
 
 function CatastropheNodeLab() {
+  const [control, setControl] = useState(48);
+  const [tension, setTension] = useState(58);
+  const twoStable = tension > 46;
+  const jumpLeft = 34 + (tension - 46) * 0.18;
+  const jumpRight = 66 - (tension - 46) * 0.18;
+  const inJumpBand = twoStable && control > jumpLeft && control < jumpRight;
+  const branch = !twoStable ? "单稳态" : control < jumpLeft ? "下稳定支" : control > jumpRight ? "上稳定支" : "滞后区";
+  const risk = !twoStable ? 18 : inJumpBand ? 92 : 54;
   return (
-    <ConceptLabFrame type="catastrophe-node" scoreLabel="分岔强度">
-      {({ a, b }) => <CatastropheSurface paramA={a} paramB={b} />}
-    </ConceptLabFrame>
+    <div className="lab-body">
+      <Dial label="控制量" value={control} setValue={setControl} />
+      <Dial label="结构张力" value={tension} setValue={setTension} />
+      <CatastropheSurface control={control} tension={tension} jumpLeft={jumpLeft} jumpRight={jumpRight} />
+      <div className="metrics-grid">
+        <Metric label="稳定分支" value={twoStable ? "2 条" : "1 条"} tone={twoStable ? "amber" : "green"} />
+        <Metric label="当前状态" value={branch} tone={inJumpBand ? "red" : twoStable ? "amber" : "green"} />
+        <Metric label="跳变风险" value={`${Math.round(risk)}%`} tone={risk > 80 ? "red" : risk > 45 ? "amber" : "green"} />
+        <Metric label="路径依赖" value={twoStable ? "明显" : "较弱"} tone={twoStable ? "amber" : "green"} />
+      </div>
+      <p className={`lab-result ${inJumpBand ? "danger" : ""}`}>
+        {inJumpBand
+          ? "已经进入滞后跳变带：系统可能仍停在旧分支，但再小的参数变化就会让旧稳定点消失，状态跃迁到另一分支。"
+          : twoStable
+            ? "当前处在双稳态区域：同样参数下可能存在两个稳定结果，平均值会掩盖真实结构。"
+            : "当前处在单稳态区域：扰动会被拉回同一稳定分支，变化更接近平滑调节。"}
+      </p>
+    </div>
   );
 }
 
@@ -1429,12 +1458,26 @@ function ConditionMixer({ speed, intermediates }: { speed: number; intermediates
   );
 }
 
-function CatastropheSurface({ paramA, paramB }: { paramA: number; paramB: number }) {
+function CatastropheSurface({ control, tension, jumpLeft, jumpRight }: { control: number; tension: number; jumpLeft: number; jumpRight: number }) {
+  const stateY = tension > 46 && control > jumpRight ? 28 : tension > 46 && control < jumpLeft ? 72 : 50;
+  const markerX = Math.max(8, Math.min(92, control));
+  const cuspWidth = Math.max(0, jumpRight - jumpLeft);
   return (
     <div className="concept-canvas catastrophe-surface">
-      <div style={{ transform: `skew(${(paramA - 50) * 0.16}deg) rotateX(${paramB * 0.24}deg)` }} />
-      <i style={{ left: `${paramA}%`, top: `${100 - paramB}%` }} />
-      <span>折叠面附近小移动会跨越状态边界</span>
+      <svg viewBox="0 0 100 100" aria-label="尖点突变示意图">
+        <line className="axis" x1="8" x2="92" y1="50" y2="50" />
+        <line className="axis" x1="50" x2="50" y1="12" y2="88" />
+        <path className="branch stable upper" d="M12 26 C28 22, 38 24, 48 36 C56 46, 64 50, 88 42" />
+        <path className="branch unstable" d="M20 72 C34 62, 42 58, 50 50 C58 42, 66 38, 80 28" />
+        <path className="branch stable lower" d="M12 74 C28 78, 38 76, 48 64 C56 54, 64 50, 88 58" />
+        <rect className="jump-band" x={jumpLeft} y="18" width={cuspWidth} height="64" opacity={tension > 46 ? 1 : 0.22} />
+        <path className="hysteresis" d={`M${jumpLeft} 72 L${jumpLeft} 36 M${jumpRight} 28 L${jumpRight} 64`} />
+      </svg>
+      <i style={{ left: `${markerX}%`, top: `${stateY}%` }} />
+      <b className="cusp-label top">上稳定支</b>
+      <b className="cusp-label bottom">下稳定支</b>
+      <em>黄色区 = 旧稳定分支将消失的滞后跳变带</em>
+      <span>尖点模型：控制量缓慢变化，状态可能突然换到另一稳定分支</span>
     </div>
   );
 }

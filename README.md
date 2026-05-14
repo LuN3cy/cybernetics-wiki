@@ -16,9 +16,9 @@ The project is designed for learners who want to understand cybernetics through 
 
 ## Source Material Boundary
 
-The original PDF is **not included in this repository**. The public site only uses selected page images under `public/pdf-pages/` so the reference modal can show the surrounding source page for learning context.
+This repository includes the original PDF file because the deployed learning site needs reliable source context. A deployable copy is available at `public/cybernetics-methodology.pdf`. The interactive reference modal primarily uses selected page images under `public/pdf-pages/` so it can highlight the relevant source-page region, and also links back to the PDF page range for full-context reading.
 
-Because this is a static public website, any image used by the deployed page is technically downloadable through browser developer tools. The project therefore avoids publishing the original full PDF file, but it cannot make publicly served page images fully private.
+Because this is a static public website, any PDF or image used by the deployed page is technically downloadable through browser developer tools. If you need stricter access control, move the PDF and page images behind an authenticated server or generate references on demand from a private backend instead of hosting them as static assets.
 
 If you own or control distribution rights and want a stricter setup, move the page images behind an authenticated server or generate them on demand from a private backend instead of hosting them as static assets.
 

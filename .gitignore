@@ -4,4 +4,5 @@ dist
 .env.local
 *.log
 *.pdf
+!控制论与科学方法论-金观涛、华国凡.pdf
 !public/**/*.pdf
