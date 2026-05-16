@@ -47,7 +47,8 @@ export type LabType =
   | "decidability"
   | "science-human"
   | "poison-binary"
-  | "huffman-compression";
+  | "huffman-compression"
+  | "color-space";
 
 export type SourceReference = {
   chapter: string;

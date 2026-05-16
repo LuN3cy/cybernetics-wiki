@@ -2263,6 +2263,130 @@ h1 {
   font-weight: 950;
 }
 
+.color-pair-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.color-endpoints {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.color-endpoints div {
+  min-height: 82px;
+  display: grid;
+  align-content: end;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 13px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+}
+
+.color-endpoints span,
+.color-endpoints b {
+  justify-self: start;
+  border-radius: 999px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.gradient-lab {
+  display: grid;
+  gap: 10px;
+}
+
+.gradient-row {
+  display: grid;
+  grid-template-columns: minmax(138px, 0.42fr) minmax(0, 1fr) 78px;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-raised);
+  padding: 12px;
+}
+
+.gradient-row div {
+  display: grid;
+  gap: 4px;
+}
+
+.gradient-row strong {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.gradient-row span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.gradient-row > i {
+  display: block;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+}
+
+.gradient-row > b {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: #111;
+  font-family: "Google Sans Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 950;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.gray-channel-lab {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.gray-preview {
+  display: grid;
+  align-content: end;
+  gap: 5px;
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 12px;
+}
+
+.gray-preview span,
+.gray-preview strong {
+  justify-self: start;
+  border-radius: 999px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.channel-bars {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-raised);
+  padding: 12px;
+}
+
 .module-quiz {
   display: grid;
   gap: 14px;
@@ -3472,7 +3596,9 @@ h1 {
   .channel-encoder,
   .positive-loop-system,
   .poison-flow,
-  .huffman-lab-grid {
+  .huffman-lab-grid,
+  .gradient-row,
+  .gray-channel-lab {
     grid-template-columns: 1fr;
   }
 
@@ -3515,6 +3641,10 @@ h1 {
   .pixel-tile {
     max-width: 260px;
     justify-self: center;
+  }
+
+  .color-endpoints {
+    grid-template-columns: 1fr;
   }
 
   .clue-list,

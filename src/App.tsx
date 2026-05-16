@@ -85,6 +85,7 @@ const iconMap: Record<LabType, typeof Target> = {
   "science-human": GraduationCap,
   "poison-binary": FlaskConical,
   "huffman-compression": ListTree,
+  "color-space": Palette,
 };
 
 const themeStorageKey = "cybernetics-theme-id";
@@ -602,6 +603,7 @@ const labExperienceGuide: Record<LabType, { object: string; control: string; fee
   "science-human": { object: "人机协作秤", control: "自动化/审查", feedback: "效率与责任平衡" },
   "poison-binary": { object: "1000 个编号瓶", control: "二进制分组滴样", feedback: "小鼠生死模式" },
   "huffman-compression": { object: "8x8 像素图", control: "颜色分布", feedback: "编码树/压缩率" },
+  "color-space": { object: "两端颜色与灰度", control: "插值空间/目标色度", feedback: "中点颜色/灰度权重/色域损失" },
 };
 
 function LabSwitch({ type }: { type: LabType }) {
@@ -654,6 +656,7 @@ function LabSwitch({ type }: { type: LabType }) {
   if (type === "science-human") return <ScienceHumanLab />;
   if (type === "poison-binary") return <PoisonBinaryLab />;
   if (type === "huffman-compression") return <HuffmanCompressionLab />;
+  if (type === "color-space") return <ColorSpaceLab />;
   return <SystemChapterLab type={type} />;
 }
 
@@ -1618,6 +1621,208 @@ function buildHuffmanCodes(symbols: HuffmanSymbol[]) {
   }
   walk(nodes[0], "");
   return codes;
+}
+
+type RgbColor = { r: number; g: number; b: number };
+
+const colorPairs = [
+  { id: "red-cyan", name: "红 → 青", a: "#ff2b2b", b: "#00d4ff" },
+  { id: "blue-yellow", name: "蓝 → 黄", a: "#2457ff", b: "#ffd84d" },
+  { id: "purple-green", name: "紫 → 绿", a: "#8a2be2", b: "#72e04a" },
+  { id: "skin-medical", name: "肤色 → 血氧蓝", a: "#f1a889", b: "#2c72d6" },
+];
+
+function ColorSpaceLab() {
+  const [pairId, setPairId] = useState("red-cyan");
+  const [chromaBoost, setChromaBoost] = useState(58);
+  const pair = colorPairs.find((item) => item.id === pairId) ?? colorPairs[0];
+  const a = hexToRgb(pair.a);
+  const b = hexToRgb(pair.b);
+  const rgbRamp = makeRamp(a, b, "rgb", chromaBoost);
+  const hsvRamp = makeRamp(a, b, "hsv", chromaBoost);
+  const perceptualRamp = makeRamp(a, b, "oklch", chromaBoost);
+  const rgbMid = rgbRamp[5].rgb;
+  const hsvMid = hsvRamp[5].rgb;
+  const perceptualMid = perceptualRamp[5].rgb;
+  const luma = grayscaleLuma(rgbMid);
+  const average = Math.round((rgbMid.r + rgbMid.g + rgbMid.b) / 3);
+  const clipped = perceptualRamp.filter((item) => item.clipped).length;
+  return (
+    <div className="lab-body">
+      <div className="segmented color-pair-tabs">
+        {colorPairs.map((item) => <HeroButton key={item.id} className={pairId === item.id ? "active" : ""} onPress={() => setPairId(item.id)}>{item.name}</HeroButton>)}
+      </div>
+      <Dial label="目标色度" value={chromaBoost} setValue={setChromaBoost} />
+      <div className="color-endpoints">
+        <div style={{ background: pair.a }}><span>A</span><b>{pair.a}</b></div>
+        <div style={{ background: pair.b }}><span>B</span><b>{pair.b}</b></div>
+      </div>
+      <div className="gradient-lab">
+        <GradientRow title="RGB 通道直线" ramp={rgbRamp.map((item) => item.rgb)} note={`中点 ${rgbToHex(rgbMid)}，R/G/B 直接平均`} />
+        <GradientRow title="HSV 色相环" ramp={hsvRamp.map((item) => item.rgb)} note={`中点 ${rgbToHex(hsvMid)}，沿色相绕行`} />
+        <GradientRow title="感知型 OKLCH/HCT 思路" ramp={perceptualRamp.map((item) => item.rgb)} note={`中点 ${rgbToHex(perceptualMid)}，尽量保持 tone/chroma`} />
+      </div>
+      <div className="gray-channel-lab">
+        <div className="gray-preview" style={{ background: rgbToHex(rgbMid) }}>
+          <span>RGB 中点</span>
+          <strong>{rgbToHex(rgbMid)}</strong>
+        </div>
+        <div className="channel-bars">
+          <Bar label="R 通道" value={(rgbMid.r / 255) * 100} tone="red" />
+          <Bar label="G 通道" value={(rgbMid.g / 255) * 100} tone="green" />
+          <Bar label="B 通道" value={(rgbMid.b / 255) * 100} tone="amber" />
+          <Bar label="简单平均灰度" value={(average / 255) * 100} tone="amber" />
+          <Bar label="加权亮度灰度" value={(luma / 255) * 100} tone="green" />
+        </div>
+      </div>
+      <div className="metrics-grid">
+        <Metric label="RGB 中点饱和感" value={`${Math.round(rgbChroma(rgbMid))}%`} tone={rgbChroma(rgbMid) > 42 ? "green" : "amber"} />
+        <Metric label="亮度灰度值" value={`${luma}`} />
+        <Metric label="色域裁剪点" value={`${clipped}/11`} tone={clipped > 0 ? "amber" : "green"} />
+        <Metric label="标准是否统一" value="不能简单统一" tone="amber" />
+      </div>
+      <p className="lab-result">
+        RGB 适合屏幕发光控制，HSV 适合人手选色，HCT/OKLCH 适合表达感知上的 tone/chroma。它们优化目标不同；转换到 sRGB 屏幕时还会遇到色域边界，所以不存在一个在所有任务中都无损、好看、统一的颜色标准。
+      </p>
+    </div>
+  );
+}
+
+function GradientRow({ title, ramp, note }: { title: string; ramp: RgbColor[]; note: string }) {
+  const gradient = `linear-gradient(90deg, ${ramp.map((item) => rgbToHex(item)).join(", ")})`;
+  return (
+    <div className="gradient-row">
+      <div>
+        <strong>{title}</strong>
+        <span>{note}</span>
+      </div>
+      <i style={{ background: gradient }} />
+      <b style={{ background: rgbToHex(ramp[5]) }}>{rgbToHex(ramp[5])}</b>
+    </div>
+  );
+}
+
+function makeRamp(a: RgbColor, b: RgbColor, mode: "rgb" | "hsv" | "oklch", chromaBoost: number) {
+  return Array.from({ length: 11 }, (_, index) => {
+    const t = index / 10;
+    if (mode === "rgb") return { rgb: mixRgb(a, b, t), clipped: false };
+    if (mode === "hsv") return { rgb: mixHsv(a, b, t), clipped: false };
+    return mixOklch(a, b, t, chromaBoost / 58);
+  });
+}
+
+function hexToRgb(hex: string): RgbColor {
+  const value = hex.replace("#", "");
+  return {
+    r: Number.parseInt(value.slice(0, 2), 16),
+    g: Number.parseInt(value.slice(2, 4), 16),
+    b: Number.parseInt(value.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }: RgbColor) {
+  return `#${[r, g, b].map((value) => Math.round(clamp(value, 0, 255)).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function mixRgb(a: RgbColor, b: RgbColor, t: number): RgbColor {
+  return {
+    r: a.r + (b.r - a.r) * t,
+    g: a.g + (b.g - a.g) * t,
+    b: a.b + (b.b - a.b) * t,
+  };
+}
+
+function rgbToHsv({ r, g, b }: RgbColor) {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const delta = max - min;
+  const h = delta === 0 ? 0 : max === rn ? 60 * (((gn - bn) / delta) % 6) : max === gn ? 60 * ((bn - rn) / delta + 2) : 60 * ((rn - gn) / delta + 4);
+  return { h: (h + 360) % 360, s: max === 0 ? 0 : delta / max, v: max };
+}
+
+function hsvToRgb(h: number, s: number, v: number): RgbColor {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  const [rn, gn, bn] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return { r: (rn + m) * 255, g: (gn + m) * 255, b: (bn + m) * 255 };
+}
+
+function mixHsv(a: RgbColor, b: RgbColor, t: number) {
+  const ha = rgbToHsv(a);
+  const hb = rgbToHsv(b);
+  let delta = hb.h - ha.h;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return hsvToRgb((ha.h + delta * t + 360) % 360, ha.s + (hb.s - ha.s) * t, ha.v + (hb.v - ha.v) * t);
+}
+
+function grayscaleLuma({ r, g, b }: RgbColor) {
+  return Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+}
+
+function rgbChroma({ r, g, b }: RgbColor) {
+  return ((Math.max(r, g, b) - Math.min(r, g, b)) / 255) * 100;
+}
+
+function srgbToLinear(value: number) {
+  const normalized = value / 255;
+  return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function linearToSrgb(value: number) {
+  const srgb = value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055;
+  return srgb * 255;
+}
+
+function rgbToOklch(rgb: RgbColor) {
+  const r = srgbToLinear(rgb.r);
+  const g = srgbToLinear(rgb.g);
+  const b = srgbToLinear(rgb.b);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return { l: L, c: Math.sqrt(A * A + B * B), h: (Math.atan2(B, A) * 180 / Math.PI + 360) % 360 };
+}
+
+function oklchToRgb(lch: { l: number; c: number; h: number }) {
+  const a = lch.c * Math.cos((lch.h * Math.PI) / 180);
+  const b = lch.c * Math.sin((lch.h * Math.PI) / 180);
+  const lPrime = lch.l + 0.3963377774 * a + 0.2158037573 * b;
+  const mPrime = lch.l - 0.1055613458 * a - 0.0638541728 * b;
+  const sPrime = lch.l - 0.0894841775 * a - 1.291485548 * b;
+  const l = lPrime ** 3;
+  const m = mPrime ** 3;
+  const s = sPrime ** 3;
+  const raw = {
+    r: linearToSrgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+    g: linearToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    b: linearToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+  };
+  return { rgb: { r: clamp(raw.r, 0, 255), g: clamp(raw.g, 0, 255), b: clamp(raw.b, 0, 255) }, clipped: raw.r < 0 || raw.r > 255 || raw.g < 0 || raw.g > 255 || raw.b < 0 || raw.b > 255 };
+}
+
+function mixOklch(a: RgbColor, b: RgbColor, t: number, chromaScale: number) {
+  const ca = rgbToOklch(a);
+  const cb = rgbToOklch(b);
+  let delta = cb.h - ca.h;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return oklchToRgb({
+    l: ca.l + (cb.l - ca.l) * t,
+    c: (ca.c + (cb.c - ca.c) * t) * chromaScale,
+    h: (ca.h + delta * t + 360) % 360,
+  });
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function PotentialWellScene({ depth, disturbance, label }: { depth: number; disturbance: number; label: string }) {
