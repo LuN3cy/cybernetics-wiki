@@ -1460,15 +1460,20 @@ function PoisonBinaryLab() {
           );
         })}
       </div>
-      <div className="test-tube-rack">
+      <div className="test-tube-rack" aria-label="十支按二进制位分组的试管">
         {displayWeights.map((weight) => {
           const includedCount = Array.from({ length: 1000 }, (_, index) => index + 1).filter((value) => (value & weight) !== 0).length;
           const poisoned = deadWeights.includes(weight);
           return (
             <div className={`tube ${poisoned ? "poisoned" : ""}`} key={weight}>
-              <motion.i animate={{ height: `${26 + Math.min(54, includedCount / 12)}%` }} />
-              <span>{weight} 位管</span>
-              <small>{includedCount} 瓶滴样</small>
+              <div className="tube-head">
+                <strong>{weight} 位试管</strong>
+                <span>{poisoned ? "含毒液滴" : "未含毒"}</span>
+              </div>
+              <div className="sample-strip">
+                <motion.i animate={{ width: `${Math.min(100, includedCount / 5)}%` }} />
+              </div>
+              <small>混入编号该位为 1 的 {includedCount} 瓶</small>
             </div>
           );
         })}

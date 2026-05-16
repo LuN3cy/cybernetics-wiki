@@ -441,6 +441,9 @@ button {
   padding: 8px 8px;
   font-size: 11px;
   font-weight: 900;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -2052,48 +2055,80 @@ h1 {
 
 .test-tube-rack {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-  align-items: end;
-  min-height: 168px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, transparent 0 72%, color-mix(in srgb, var(--line) 34%, transparent) 72% 74%, transparent 74%),
-    var(--surface-raised);
+  background: var(--surface-raised);
   padding: 12px;
 }
 
 .tube {
   display: grid;
-  grid-template-rows: 1fr auto auto;
-  gap: 4px;
-  align-items: end;
+  gap: 8px;
   min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  padding: 11px;
 }
 
-.tube i {
+.tube.poisoned {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
+  background: color-mix(in srgb, var(--danger-soft) 74%, var(--surface));
+}
+
+.tube-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tube-head strong {
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.tube-head span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: var(--success);
+  background: var(--success-soft);
+  padding: 4px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.tube.poisoned .tube-head span {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.sample-strip {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--bg-soft);
+}
+
+.sample-strip i {
   display: block;
-  width: 100%;
-  min-height: 22px;
-  border: 2px solid color-mix(in srgb, var(--accent) 34%, var(--line));
-  border-top: 0;
-  border-radius: 6px 6px 16px 16px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 80%, transparent), color-mix(in srgb, var(--accent) 30%, transparent));
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--success));
 }
 
-.tube.poisoned i {
-  border-color: color-mix(in srgb, var(--danger) 44%, var(--line));
-  background: linear-gradient(180deg, var(--danger-soft), color-mix(in srgb, var(--danger) 34%, transparent));
+.tube.poisoned .sample-strip i {
+  background: linear-gradient(90deg, var(--warning), var(--danger));
 }
 
-.tube span,
 .tube small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
-  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3470,7 +3505,7 @@ h1 {
   }
 
   .test-tube-rack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .bit-lane-board {
