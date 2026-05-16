@@ -420,6 +420,33 @@ button {
   margin-top: 18px;
 }
 
+.knowledge-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+}
+
+.knowledge-switcher [data-slot="button"] {
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.knowledge-switcher [data-slot="button"].active {
+  color: var(--on-accent);
+  background: var(--accent-strong);
+}
+
 .module-list.grouped {
   gap: 18px;
 }
@@ -1861,6 +1888,136 @@ h1 {
     var(--warning-soft);
 }
 
+.binary-code-card {
+  display: grid;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 82%, var(--surface)), var(--surface));
+  padding: 16px;
+}
+
+.binary-code-card span,
+.binary-code-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.binary-code-card strong {
+  color: var(--accent-strong);
+  font-family: "Google Sans Code", "SFMono-Regular", Consolas, monospace;
+  font-size: clamp(22px, 5vw, 34px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.mouse-decoder {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mouse-bit {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  min-height: 92px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  color: var(--text);
+  background: var(--surface);
+  padding: 10px 8px;
+}
+
+.mouse-bit b,
+.mouse-bit em {
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.mouse-bit i {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.mouse-bit span {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mouse-bit.dead {
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+  background: var(--danger-soft);
+}
+
+.mouse-bit.dead i {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger-soft) 82%, var(--surface));
+}
+
+.mouse-bit.dead span {
+  color: var(--danger);
+}
+
+.test-tube-rack {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+  min-height: 168px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, transparent 0 72%, color-mix(in srgb, var(--line) 34%, transparent) 72% 74%, transparent 74%),
+    var(--surface-raised);
+  padding: 12px;
+}
+
+.tube {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 4px;
+  align-items: end;
+  min-width: 0;
+}
+
+.tube i {
+  display: block;
+  width: 100%;
+  min-height: 22px;
+  border: 2px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+  border-top: 0;
+  border-radius: 6px 6px 16px 16px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 80%, transparent), color-mix(in srgb, var(--accent) 30%, transparent));
+}
+
+.tube.poisoned i {
+  border-color: color-mix(in srgb, var(--danger) 44%, var(--line));
+  background: linear-gradient(180deg, var(--danger-soft), color-mix(in srgb, var(--danger) 34%, transparent));
+}
+
+.tube span,
+.tube small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .module-quiz {
   display: grid;
   gap: 14px;
@@ -3095,8 +3252,13 @@ h1 {
   .molecule,
   .source-states,
   .alarm-levels,
-  .artifact-board {
+  .artifact-board,
+  .mouse-decoder {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .test-tube-rack {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .clue-list,

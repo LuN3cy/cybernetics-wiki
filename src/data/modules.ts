@@ -873,7 +873,46 @@ modules.push(...chapter4Modules, ...chapter5Modules);
 
 export const chapters = ["第一章", "第二章", "第三章", "第四章", "第五章"] as const;
 
+export const problemModules: ChapterModule[] = [
+  moduleItem({
+    id: "poison-binary",
+    chapter: "趣味问题",
+    index: "P.1",
+    title: "10 只小白鼠找出 1000 瓶中的毒药",
+    question: "1000 个外观相同的瓶子里只有 1 瓶有毒，10 只小白鼠和无限干净试管够不够一次找出它？",
+    takeaway: "够。关键不是逐瓶试，而是把每个瓶子的编号写成 10 位二进制，让每只小白鼠负责一个二进制位；死亡模式本身就是毒瓶编号。",
+    sourceCase: {
+      source: "趣味问题",
+      title: "毒瓶与小白鼠",
+      body: "有 1000 个瓶子，其中 999 瓶是水，1 瓶是毒药，外观无法区别。现在有 10 只小白鼠和无限多的干净试管，目标是用最少的测试轮次找出毒药瓶。",
+    },
+    modernCase: modern("二进制编码与信息容量", "每只小白鼠最终只有两种状态：活或死。10 只小白鼠就有 2^10 = 1024 种状态组合，可以编码 1000 个瓶子的编号。这和计算机用 10 个 bit 表示最多 1024 个不同值是同一个思想。"),
+    theory: [
+      "把瓶子从 1 到 1000 编号，并把编号写成 10 位二进制。第 1 只小鼠代表 1 位，第 2 只代表 2 位，第 3 只代表 4 位，依此类推到第 10 只代表 512 位。",
+      "准备 10 支测试管。对每一瓶，如果它的编号在某一位上是 1，就往对应测试管里滴入这一瓶的一小滴。最后让第 k 只小鼠喝第 k 支测试管里的混合液。",
+      "如果毒药在某瓶中，那么所有喝到包含该瓶液滴的测试管的小鼠会死亡。死掉小鼠对应的权重相加，得到的数字就是毒药瓶编号。",
+      "无限干净试管的作用是让混合、转移和分组不互相污染；真正决定能否一次找出的不是试管数量，而是小鼠死亡模式能提供多少信息量。",
+    ],
+    operationGuide: ["拖动毒瓶编号。", "观察 10 位二进制编码。", "看哪些测试管包含毒瓶液滴、哪些小鼠死亡。", "把死亡小鼠的权重相加，验证是否回到毒瓶编号。"],
+    formula: "10 只小鼠 = 10 bit = 2^10 = 1024 种结果 ≥ 1000 瓶",
+    lab: { type: "poison-binary", title: "二进制毒瓶解码器", premise: "每只小鼠提供 1 个二进制位：死=1，活=0。10 只小鼠的生死模式足够编码 1000 个瓶子。", task: "调节毒瓶编号，观察混合测试管、小鼠死亡模式和最终解码编号。" },
+    quiz: [
+      q("为什么 10 只小白鼠足以区分 1000 个瓶子？", ["10 只小鼠有 1024 种生死组合", "每只小鼠可以喝 100 瓶", "试管无限所以信息无限", "毒药颜色会变化"], 0, "每只小鼠只有活/死两态，10 只小鼠形成 2^10=1024 种结果，足以表示 1000 个编号。", "二进制编码"),
+      q("测试管在这个方案里的作用是什么？", ["把瓶子按二进制位混合分组", "让毒药失效", "让小鼠数量翻倍", "直接显示毒药颜色"], 0, "每支测试管对应一个二进制位，某瓶该位为 1 就滴入该测试管。", "分组测试"),
+    ],
+  }),
+];
+
 export const allQuestions = modules.flatMap((module) =>
+  module.quiz.map((question, index) => ({
+    ...question,
+    moduleId: module.id,
+    moduleTitle: `${module.index} ${module.title}`,
+    questionIndex: index,
+  })),
+);
+
+export const problemQuestions = problemModules.flatMap((module) =>
   module.quiz.map((question, index) => ({
     ...question,
     moduleId: module.id,
@@ -930,4 +969,5 @@ export const labTitles: Record<LabType, string> = {
   overfeedback: "过反馈",
   decidability: "判定",
   "science-human": "科学",
+  "poison-binary": "二进制",
 };

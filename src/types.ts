@@ -45,7 +45,8 @@ export type LabType =
   | "convergence-speed"
   | "overfeedback"
   | "decidability"
-  | "science-human";
+  | "science-human"
+  | "poison-binary";
 
 export type SourceReference = {
   chapter: string;
@@ -87,7 +88,7 @@ export type QuizQuestion = {
 
 export type ChapterModule = {
   id: string;
-  chapter: "第一章" | "第二章" | "第三章" | "第四章" | "第五章";
+  chapter: "第一章" | "第二章" | "第三章" | "第四章" | "第五章" | "趣味问题";
   index: string;
   title: string;
   question: string;

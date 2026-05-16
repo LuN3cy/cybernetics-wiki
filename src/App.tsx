@@ -30,7 +30,7 @@ import {
   Waypoints,
   Zap,
 } from "lucide-react";
-import { allQuestions, chapters, labTitles, modules } from "./data/modules";
+import { allQuestions, chapters, labTitles, modules, problemModules, problemQuestions } from "./data/modules";
 import { defaultColorMode, defaultThemeId, isColorMode, isThemeId, themes } from "./theme";
 import type { CaseStudy, ChapterModule, LabType, QuizQuestion, SourceReference } from "./types";
 import type { ColorMode, ThemeId } from "./theme";
@@ -83,6 +83,7 @@ const iconMap: Record<LabType, typeof Target> = {
   overfeedback: RadioTower,
   decidability: Check,
   "science-human": GraduationCap,
+  "poison-binary": FlaskConical,
 };
 
 const themeStorageKey = "cybernetics-theme-id";
@@ -134,16 +135,27 @@ function useThemeTokens() {
 
 function App() {
   const themeState = useThemeTokens();
+  const [knowledgeBase, setKnowledgeBase] = useState<"cybernetics" | "problems">("cybernetics");
   const [activeIndex, setActiveIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
-  const activeModule = modules[activeIndex];
-  const progress = Math.round(((activeIndex + 1) / modules.length) * 100);
-  const correctCount = allQuestions.reduce((count, question) => {
+  const activeModules = knowledgeBase === "cybernetics" ? modules : problemModules;
+  const activeChapters = knowledgeBase === "cybernetics" ? chapters : (["趣味问题"] as const);
+  const activeQuestions = knowledgeBase === "cybernetics" ? allQuestions : problemQuestions;
+  const activeModule = activeModules[Math.min(activeIndex, activeModules.length - 1)];
+  const progress = Math.round(((activeIndex + 1) / activeModules.length) * 100);
+  const correctCount = activeQuestions.reduce((count, question) => {
     const key = `${question.moduleId}-${question.questionIndex}`;
     return count + (answers[key] === question.answer ? 1 : 0);
   }, 0);
   const currentAnswered = activeModule.quiz.filter((_, index) => answers[`${activeModule.id}-${index}`] !== undefined).length;
+  const appTitle = knowledgeBase === "cybernetics" ? "控制论与科学方法论.pdf" : "有意思的小问题";
+
+  function switchKnowledgeBase(next: "cybernetics" | "problems") {
+    setKnowledgeBase(next);
+    setActiveIndex(0);
+    setMobileRailOpen(false);
+  }
 
   return (
     <div className="app-shell">
@@ -153,7 +165,7 @@ function App() {
             <Activity size={18} />
           </div>
           <div>
-            <strong>控制论与科学方法论.pdf</strong>
+            <strong>{appTitle}</strong>
             <span>{activeModule.chapter}：{activeModule.title}</span>
           </div>
         </div>
@@ -182,11 +194,15 @@ function App() {
             </div>
             <HeroButton className="mobile-rail-close" onPress={() => setMobileRailOpen(false)}>关闭</HeroButton>
           </div>
+          <div className="knowledge-switcher" role="tablist" aria-label="知识集切换">
+            <HeroButton className={knowledgeBase === "cybernetics" ? "active" : ""} onPress={() => switchKnowledgeBase("cybernetics")}>控制论</HeroButton>
+            <HeroButton className={knowledgeBase === "problems" ? "active" : ""} onPress={() => switchKnowledgeBase("problems")}>有意思的小问题</HeroButton>
+          </div>
           <div className="module-list grouped">
-            {chapters.map((chapter) => (
+            {activeChapters.map((chapter) => (
               <section className="module-group" key={chapter}>
                 <h3>{chapter}</h3>
-                {modules.map((module, index) => {
+                {activeModules.map((module, index) => {
                   if (module.chapter !== chapter) return null;
                   const Icon = iconMap[module.lab.type];
                   return (
@@ -236,11 +252,11 @@ function App() {
           <GraduationCap size={19} />
           <div>
             <strong>章节总览</strong>
-            <span>共 {modules.length} 个小节、{allQuestions.length} 道即时题；当前答对 {correctCount} 道。</span>
+            <span>共 {activeModules.length} 个小节、{activeQuestions.length} 道即时题；当前答对 {correctCount} 道。</span>
           </div>
         </div>
         <div className="summary-flow">
-          {modules.map((module, index) => {
+          {activeModules.map((module, index) => {
             const done = module.quiz.every((_, questionIndex) => answers[`${module.id}-${questionIndex}`] !== undefined);
             return (
               <HeroButton key={module.id} className={done ? "done" : ""} onPress={() => setActiveIndex(index)}>
@@ -583,6 +599,7 @@ const labExperienceGuide: Record<LabType, { object: string; control: string; fee
   overfeedback: { object: "反馈节奏仪", control: "频率/噪声", feedback: "追噪声风险" },
   decidability: { object: "判定阈值", control: "证据/规则", feedback: "可否下结论" },
   "science-human": { object: "人机协作秤", control: "自动化/审查", feedback: "效率与责任平衡" },
+  "poison-binary": { object: "1000 个编号瓶", control: "二进制分组滴样", feedback: "小鼠生死模式" },
 };
 
 function LabSwitch({ type }: { type: LabType }) {
@@ -633,6 +650,7 @@ function LabSwitch({ type }: { type: LabType }) {
   if (type === "overfeedback") return <OverfeedbackLab />;
   if (type === "decidability") return <DecidabilityLab />;
   if (type === "science-human") return <ScienceHumanLab />;
+  if (type === "poison-binary") return <PoisonBinaryLab />;
   return <SystemChapterLab type={type} />;
 }
 
@@ -1382,6 +1400,66 @@ function ScienceHumanLab() {
     <ConceptLabFrame type="science-human" scoreLabel="协作质量">
       {({ a, b }) => <HumanScienceBalance automation={a} review={b} />}
     </ConceptLabFrame>
+  );
+}
+
+function PoisonBinaryLab() {
+  const [poisonBottle, setPoisonBottle] = useState(613);
+  const weights = Array.from({ length: 10 }, (_, index) => 2 ** index);
+  const deadWeights = weights.filter((weight) => (poisonBottle & weight) !== 0);
+  const decoded = deadWeights.reduce((sum, weight) => sum + weight, 0);
+  const binary = poisonBottle.toString(2).padStart(10, "0");
+  return (
+    <div className="lab-body">
+      <label className="slider-row poison-slider">
+        <span>毒瓶编号</span>
+        <div className="range-control">
+          <input type="range" min="1" max="1000" value={poisonBottle} onChange={(event) => setPoisonBottle(Number(event.target.value))} />
+          <small><em>1</em><em>1000</em></small>
+        </div>
+        <strong>{poisonBottle}</strong>
+      </label>
+      <div className="binary-code-card">
+        <span>10 位二进制标签</span>
+        <strong>{binary}</strong>
+        <small>从左到右是 512, 256, 128, ... , 1 位</small>
+      </div>
+      <div className="mouse-decoder">
+        {weights.map((weight, index) => {
+          const dead = deadWeights.includes(weight);
+          return (
+            <motion.div className={`mouse-bit ${dead ? "dead" : ""}`} key={weight} animate={{ y: dead ? 5 : 0 }}>
+              <b>鼠 {index + 1}</b>
+              <i>{weight}</i>
+              <span>{dead ? "死=1" : "活=0"}</span>
+              <em>管 {index + 1}</em>
+            </motion.div>
+          );
+        })}
+      </div>
+      <div className="test-tube-rack">
+        {weights.map((weight, index) => {
+          const includedCount = Math.floor(1000 / (weight * 2)) * weight + Math.min(Math.max(1000 % (weight * 2) - weight + 1, 0), weight);
+          const poisoned = deadWeights.includes(weight);
+          return (
+            <div className={`tube ${poisoned ? "poisoned" : ""}`} key={weight}>
+              <motion.i animate={{ height: `${26 + Math.min(54, includedCount / 12)}%` }} />
+              <span>管{index + 1}</span>
+              <small>{includedCount} 瓶滴样</small>
+            </div>
+          );
+        })}
+      </div>
+      <div className="metrics-grid">
+        <Metric label="可编码结果" value="1024" tone="green" />
+        <Metric label="实际瓶数" value="1000" />
+        <Metric label="富余编码" value="24" tone="amber" />
+        <Metric label="解码编号" value={`${decoded}`} tone={decoded === poisonBottle ? "green" : "red"} />
+      </div>
+      <p className="lab-result success">
+        死亡小鼠的权重相加：{deadWeights.length ? deadWeights.join(" + ") : "0"} = {decoded}。这就是毒瓶编号。无限干净试管只负责无污染混合，核心信息来自 10 个二进制位。
+      </p>
+    </div>
   );
 }
 
