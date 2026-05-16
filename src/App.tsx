@@ -84,6 +84,7 @@ const iconMap: Record<LabType, typeof Target> = {
   decidability: Check,
   "science-human": GraduationCap,
   "poison-binary": FlaskConical,
+  "huffman-compression": ListTree,
 };
 
 const themeStorageKey = "cybernetics-theme-id";
@@ -600,6 +601,7 @@ const labExperienceGuide: Record<LabType, { object: string; control: string; fee
   decidability: { object: "判定阈值", control: "证据/规则", feedback: "可否下结论" },
   "science-human": { object: "人机协作秤", control: "自动化/审查", feedback: "效率与责任平衡" },
   "poison-binary": { object: "1000 个编号瓶", control: "二进制分组滴样", feedback: "小鼠生死模式" },
+  "huffman-compression": { object: "8x8 像素图", control: "颜色分布", feedback: "编码树/压缩率" },
 };
 
 function LabSwitch({ type }: { type: LabType }) {
@@ -651,6 +653,7 @@ function LabSwitch({ type }: { type: LabType }) {
   if (type === "decidability") return <DecidabilityLab />;
   if (type === "science-human") return <ScienceHumanLab />;
   if (type === "poison-binary") return <PoisonBinaryLab />;
+  if (type === "huffman-compression") return <HuffmanCompressionLab />;
   return <SystemChapterLab type={type} />;
 }
 
@@ -1406,9 +1409,11 @@ function ScienceHumanLab() {
 function PoisonBinaryLab() {
   const [poisonBottle, setPoisonBottle] = useState(613);
   const weights = Array.from({ length: 10 }, (_, index) => 2 ** index);
+  const displayWeights = [...weights].reverse();
   const deadWeights = weights.filter((weight) => (poisonBottle & weight) !== 0);
   const decoded = deadWeights.reduce((sum, weight) => sum + weight, 0);
   const binary = poisonBottle.toString(2).padStart(10, "0");
+  const deadPattern = displayWeights.map((weight) => (deadWeights.includes(weight) ? "1" : "0")).join("");
   return (
     <div className="lab-body">
       <label className="slider-row poison-slider">
@@ -1422,29 +1427,47 @@ function PoisonBinaryLab() {
       <div className="binary-code-card">
         <span>10 位二进制标签</span>
         <strong>{binary}</strong>
-        <small>从左到右是 512, 256, 128, ... , 1 位</small>
+        <small>从左到右是 512, 256, 128, ... , 1 位；死亡模式 = {deadPattern}</small>
+      </div>
+      <div className="poison-flow">
+        <div className="poison-bottle-card">
+          <b>毒瓶 #{poisonBottle}</b>
+          <span>给编号中为 1 的位对应试管滴样</span>
+        </div>
+        <div className="bit-lane-board">
+          {displayWeights.map((weight, index) => {
+            const active = deadWeights.includes(weight);
+            return (
+              <motion.div className={`bit-lane ${active ? "active" : ""}`} key={weight} animate={{ y: active ? -4 : 0 }}>
+                <span>bit {10 - index}</span>
+                <b>{weight}</b>
+                <i>{active ? "滴入" : "跳过"}</i>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
       <div className="mouse-decoder">
-        {weights.map((weight, index) => {
+        {displayWeights.map((weight, index) => {
           const dead = deadWeights.includes(weight);
           return (
             <motion.div className={`mouse-bit ${dead ? "dead" : ""}`} key={weight} animate={{ y: dead ? 5 : 0 }}>
-              <b>鼠 {index + 1}</b>
+              <b>鼠 {10 - index}</b>
               <i>{weight}</i>
               <span>{dead ? "死=1" : "活=0"}</span>
-              <em>管 {index + 1}</em>
+              <em>试管权重 {weight}</em>
             </motion.div>
           );
         })}
       </div>
       <div className="test-tube-rack">
-        {weights.map((weight, index) => {
-          const includedCount = Math.floor(1000 / (weight * 2)) * weight + Math.min(Math.max(1000 % (weight * 2) - weight + 1, 0), weight);
+        {displayWeights.map((weight) => {
+          const includedCount = Array.from({ length: 1000 }, (_, index) => index + 1).filter((value) => (value & weight) !== 0).length;
           const poisoned = deadWeights.includes(weight);
           return (
             <div className={`tube ${poisoned ? "poisoned" : ""}`} key={weight}>
               <motion.i animate={{ height: `${26 + Math.min(54, includedCount / 12)}%` }} />
-              <span>管{index + 1}</span>
+              <span>{weight} 位管</span>
               <small>{includedCount} 瓶滴样</small>
             </div>
           );
@@ -1461,6 +1484,135 @@ function PoisonBinaryLab() {
       </p>
     </div>
   );
+}
+
+type HuffmanSymbol = { id: string; label: string; color: string; count: number };
+type HuffmanNode = { id: string; weight: number; symbol?: HuffmanSymbol; left?: HuffmanNode; right?: HuffmanNode };
+
+const huffmanPalettes: Array<{ id: string; name: string; symbols: HuffmanSymbol[] }> = [
+  {
+    id: "icon",
+    name: "大面积背景图标",
+    symbols: [
+      { id: "A", label: "背景", color: "#f4f1e8", count: 34 },
+      { id: "B", label: "主体", color: "#7c19ff", count: 14 },
+      { id: "C", label: "阴影", color: "#111111", count: 7 },
+      { id: "D", label: "高光", color: "#73e338", count: 5 },
+      { id: "E", label: "边缘", color: "#ffb020", count: 3 },
+      { id: "F", label: "噪点", color: "#d1433f", count: 1 },
+    ],
+  },
+  {
+    id: "photo",
+    name: "接近均匀的噪声块",
+    symbols: [
+      { id: "A", label: "色 1", color: "#e6f0ff", count: 12 },
+      { id: "B", label: "色 2", color: "#9bc9ff", count: 11 },
+      { id: "C", label: "色 3", color: "#4f8cff", count: 11 },
+      { id: "D", label: "色 4", color: "#7c19ff", count: 10 },
+      { id: "E", label: "色 5", color: "#73e338", count: 10 },
+      { id: "F", label: "色 6", color: "#111111", count: 10 },
+    ],
+  },
+  {
+    id: "mask",
+    name: "二值边缘遮罩",
+    symbols: [
+      { id: "A", label: "空白", color: "#f8fafc", count: 46 },
+      { id: "B", label: "线条", color: "#111111", count: 10 },
+      { id: "C", label: "角点", color: "#7c19ff", count: 4 },
+      { id: "D", label: "抗锯齿", color: "#73e338", count: 2 },
+      { id: "E", label: "标记", color: "#ffb020", count: 1 },
+      { id: "F", label: "噪点", color: "#d1433f", count: 1 },
+    ],
+  },
+];
+
+function HuffmanCompressionLab() {
+  const [sampleId, setSampleId] = useState("icon");
+  const sample = huffmanPalettes.find((item) => item.id === sampleId) ?? huffmanPalettes[0];
+  const codes = buildHuffmanCodes(sample.symbols);
+  const fixedBits = sample.symbols.reduce((sum, item) => sum + item.count * 3, 0);
+  const huffmanBits = sample.symbols.reduce((sum, item) => sum + item.count * (codes[item.id]?.length ?? 1), 0);
+  const saved = fixedBits - huffmanBits;
+  const pixels = sample.symbols.flatMap((symbol) => Array.from({ length: symbol.count }, () => symbol));
+  return (
+    <div className="lab-body">
+      <div className="segmented">
+        {huffmanPalettes.map((item) => (
+          <HeroButton key={item.id} className={sampleId === item.id ? "active" : ""} onPress={() => setSampleId(item.id)}>{item.name}</HeroButton>
+        ))}
+      </div>
+      <div className="huffman-lab-grid">
+        <div className="pixel-tile">
+          {pixels.map((pixel, index) => <i key={`${pixel.id}-${index}`} style={{ background: pixel.color }} title={pixel.label} />)}
+        </div>
+        <div className="frequency-panel">
+          {sample.symbols.map((symbol) => (
+            <div className="frequency-row" key={symbol.id}>
+              <span><i style={{ background: symbol.color }} />{symbol.label}</span>
+              <b style={{ width: `${(symbol.count / 46) * 100}%` }} />
+              <strong>{symbol.count}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="huffman-tree-view">
+        <div className="tree-root">合并最小频率</div>
+        <div className="tree-level">
+          {sample.symbols
+            .slice()
+            .sort((a, b) => b.count - a.count)
+            .map((symbol) => <span key={symbol.id} style={{ borderColor: symbol.color }}>{symbol.label}<em>{codes[symbol.id]}</em></span>)}
+        </div>
+      </div>
+      <div className="code-table">
+        {sample.symbols.map((symbol) => (
+          <div key={symbol.id}>
+            <span><i style={{ background: symbol.color }} />{symbol.label}</span>
+            <strong>{codes[symbol.id]}</strong>
+            <em>{codes[symbol.id].length} bit</em>
+          </div>
+        ))}
+      </div>
+      <div className="metrics-grid">
+        <Metric label="固定长度" value={`${fixedBits} bit`} />
+        <Metric label="哈夫曼" value={`${huffmanBits} bit`} tone="green" />
+        <Metric label="节省" value={`${saved} bit`} tone={saved > 20 ? "green" : "amber"} />
+        <Metric label="压缩率" value={`${Math.round((1 - huffmanBits / fixedBits) * 100)}%`} tone={saved > 20 ? "green" : "amber"} />
+      </div>
+      <p className="lab-result">
+        观察频率最高的颜色：它的码长最短。切到“接近均匀的噪声块”时，频率差距变小，哈夫曼编码能省下的 bit 也会变少。
+      </p>
+    </div>
+  );
+}
+
+function buildHuffmanCodes(symbols: HuffmanSymbol[]) {
+  let nodes: HuffmanNode[] = symbols.map((symbol) => ({ id: symbol.id, weight: symbol.count, symbol }));
+  while (nodes.length > 1) {
+    nodes = nodes.slice().sort((a, b) => a.weight - b.weight || a.id.localeCompare(b.id));
+    const left = nodes[0];
+    const right = nodes[1];
+    const parent: HuffmanNode = {
+      id: `${left.id}${right.id}`,
+      weight: left.weight + right.weight,
+      left,
+      right,
+    };
+    nodes = [parent, ...nodes.slice(2)];
+  }
+  const codes: Record<string, string> = {};
+  function walk(node: HuffmanNode, prefix: string) {
+    if (node.symbol) {
+      codes[node.symbol.id] = prefix || "0";
+      return;
+    }
+    if (node.left) walk(node.left, `${prefix}0`);
+    if (node.right) walk(node.right, `${prefix}1`);
+  }
+  walk(nodes[0], "");
+  return codes;
 }
 
 function PotentialWellScene({ depth, disturbance, label }: { depth: number; disturbance: number; label: string }) {

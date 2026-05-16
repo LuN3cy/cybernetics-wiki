@@ -46,7 +46,8 @@ export type LabType =
   | "overfeedback"
   | "decidability"
   | "science-human"
-  | "poison-binary";
+  | "poison-binary"
+  | "huffman-compression";
 
 export type SourceReference = {
   chapter: string;
