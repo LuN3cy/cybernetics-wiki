@@ -264,7 +264,7 @@ function App() {
           </div>
         </aside>
 
-        <section className="reader-panel" id="reader">
+        <motion.section className="reader-panel" id="reader" layout transition={{ type: "spring", stiffness: 320, damping: 34 }}>
           <AnimatePresence mode="wait">
             <motion.article
               key={activeModule.id}
@@ -278,16 +278,16 @@ function App() {
               <div ref={readerEndRef} className="reader-end-sentinel" aria-hidden="true" />
             </motion.article>
           </AnimatePresence>
-        </section>
+        </motion.section>
 
-        <div className="panel-swap-control" aria-label="交换阅读和实验面板位置" data-tooltip={panelLayout === "reader-center" ? "把实验切到中间" : "把阅读切回中间"}>
+        <motion.div className="panel-swap-control" aria-label="交换阅读和实验面板位置" data-tooltip={panelLayout === "reader-center" ? "把实验切到中间" : "把阅读切回中间"} layout transition={{ type: "spring", stiffness: 320, damping: 34 }}>
           <HeroButton isIconOnly aria-label={panelLayout === "reader-center" ? "把实验切到中间" : "把阅读切回中间"} onPress={togglePanelLayout}>
             <ArrowLeftRight size={18} />
           </HeroButton>
-        </div>
-        <aside className="lab-panel" id="lab">
+        </motion.div>
+        <motion.aside className="lab-panel" id="lab" layout transition={{ type: "spring", stiffness: 320, damping: 34 }}>
           <LabPanel module={activeModule} />
-        </aside>
+        </motion.aside>
       </main>
 
       <section className="chapter-summary" id="quiz">

@@ -391,6 +391,7 @@ html[data-effective-mode="dark"] .app-shell {
 }
 
 .workspace.lab-center-active {
+  grid-template-columns: 252px minmax(420px, 31vw) 44px minmax(0, 1fr);
   grid-template-areas: "rail lab swap reader";
 }
 
@@ -598,12 +599,22 @@ html[data-effective-mode="dark"] .module-button.active small {
   min-width: 42px;
   height: 42px;
   min-height: 42px;
+  display: grid;
+  place-items: center;
   border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
   border-radius: 999px;
   color: var(--on-accent);
   background: var(--accent-strong);
   box-shadow: var(--shadow);
   padding: 0;
+  line-height: 1;
+}
+
+.panel-swap-control [data-slot="button"] svg {
+  display: block;
+  grid-area: 1 / 1;
+  margin: auto;
+  transform: translateZ(0);
 }
 
 .reader-end-sentinel {
@@ -3471,6 +3482,7 @@ h1 {
   }
 
   .workspace.lab-center-active {
+    grid-template-columns: 230px minmax(360px, 30vw) 42px minmax(0, 1fr);
     grid-template-areas: "rail lab swap reader";
   }
 
