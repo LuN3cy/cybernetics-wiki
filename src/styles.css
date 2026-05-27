@@ -1935,6 +1935,31 @@ h1 {
   letter-spacing: 0.08em;
 }
 
+.poison-mix-insight {
+  display: grid;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 78%, transparent), transparent),
+    var(--surface-raised);
+  padding: 14px;
+}
+
+.poison-mix-insight strong {
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.poison-mix-insight p {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.65;
+}
+
 .poison-flow {
   display: grid;
   grid-template-columns: minmax(120px, 0.42fr) minmax(0, 1fr);
@@ -2402,6 +2427,153 @@ h1 {
   border-radius: 22px;
   background: var(--surface-raised);
   padding: 12px;
+}
+
+.bayes-lab {
+  container-type: inline-size;
+}
+
+.bayes-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
+.bayes-story-card {
+  display: grid;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 14% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 34%),
+    var(--surface-raised);
+  padding: 15px;
+}
+
+.bayes-story-card span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.bayes-story-card strong {
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.45;
+}
+
+.bayes-story-card p {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 780;
+  line-height: 1.65;
+}
+
+.bayes-equation {
+  display: grid;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--success) 34%, var(--line));
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--success-soft) 70%, var(--surface));
+  padding: 15px;
+}
+
+.bayes-equation div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bayes-equation span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.bayes-equation strong {
+  color: var(--success);
+  font-size: clamp(34px, 8cqw, 54px);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.bayes-equation p {
+  margin: 0;
+  color: var(--text);
+  font-family: "Google Sans Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.5;
+}
+
+.bayes-population {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface-raised);
+  padding: 14px;
+}
+
+.bayes-population > i {
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.bayes-population > i.true-positive {
+  border-color: color-mix(in srgb, var(--success) 52%, var(--line));
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 16%, transparent);
+}
+
+.bayes-population > i.false-positive {
+  border-color: color-mix(in srgb, var(--warning) 54%, var(--line));
+  background: var(--warning);
+}
+
+.bayes-population > i.missed {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 82%, var(--surface));
+}
+
+.bayes-legend {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bayes-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.bayes-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.bayes-legend i.true-positive {
+  background: var(--success);
+}
+
+.bayes-legend i.false-positive {
+  background: var(--warning);
+}
+
+.bayes-legend i.missed {
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
 }
 
 .module-quiz {
@@ -3649,6 +3821,10 @@ h1 {
 
   .test-tube-rack {
     grid-template-columns: 1fr;
+  }
+
+  .bayes-population {
+    grid-template-columns: repeat(10, 1fr);
   }
 
   .bit-lane-board {

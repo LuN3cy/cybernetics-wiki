@@ -86,6 +86,7 @@ const iconMap: Record<LabType, typeof Target> = {
   "poison-binary": FlaskConical,
   "huffman-compression": ListTree,
   "color-space": Palette,
+  "bayes-label": Brain,
 };
 
 const themeStorageKey = "cybernetics-theme-id";
@@ -604,6 +605,7 @@ const labExperienceGuide: Record<LabType, { object: string; control: string; fee
   "poison-binary": { object: "1000 个编号瓶", control: "二进制分组滴样", feedback: "小鼠生死模式" },
   "huffman-compression": { object: "8x8 像素图", control: "颜色分布", feedback: "编码树/压缩率" },
   "color-space": { object: "两端颜色与灰度", control: "插值空间/目标色度", feedback: "中点颜色/灰度权重/色域损失" },
+  "bayes-label": { object: "标签与行为证据", control: "先验/命中率/误报率", feedback: "后验概率" },
 };
 
 function LabSwitch({ type }: { type: LabType }) {
@@ -657,6 +659,7 @@ function LabSwitch({ type }: { type: LabType }) {
   if (type === "poison-binary") return <PoisonBinaryLab />;
   if (type === "huffman-compression") return <HuffmanCompressionLab />;
   if (type === "color-space") return <ColorSpaceLab />;
+  if (type === "bayes-label") return <BayesLabelLab />;
   return <SystemChapterLab type={type} />;
 }
 
@@ -1432,6 +1435,10 @@ function PoisonBinaryLab() {
         <strong>{binary}</strong>
         <small>从左到右是 512, 256, 128, ... , 1 位；死亡模式 = {deadPattern}</small>
       </div>
+      <div className="poison-mix-insight">
+        <strong>混合液为什么能用？</strong>
+        <p>因为只有 1 瓶有毒，其他瓶都是水。每支试管混入很多瓶并不会制造新信息混乱，它只是在问一个问题：唯一毒瓶是否落在这个二进制分组里。</p>
+      </div>
       <div className="poison-flow">
         <div className="poison-bottle-card">
           <b>毒瓶 #{poisonBottle}</b>
@@ -1488,7 +1495,7 @@ function PoisonBinaryLab() {
         <Metric label="解码编号" value={`${decoded}`} tone={decoded === poisonBottle ? "green" : "red"} />
       </div>
       <p className="lab-result success">
-        死亡小鼠的权重相加：{deadWeights.length ? deadWeights.join(" + ") : "0"} = {decoded}。这就是毒瓶编号。无限干净试管只负责无污染混合，核心信息来自 10 个二进制位。
+        死亡小鼠的权重相加：{deadWeights.length ? deadWeights.join(" + ") : "0"} = {decoded}。这就是毒瓶编号。混合管的核心不是“把毒药稀释”，而是把 1000 个候选瓶并行编码成 10 个是/否问题。
       </p>
     </div>
   );
@@ -1823,6 +1830,138 @@ function mixOklch(a: RgbColor, b: RgbColor, t: number, chromaScale: number) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+type BayesScenario = {
+  id: string;
+  name: string;
+  hypothesis: string;
+  evidence: string;
+  prior: number;
+  hit: number;
+  falseAlarm: number;
+  note: string;
+};
+
+const bayesScenarios: BayesScenario[] = [
+  {
+    id: "label",
+    name: "贴标签判断",
+    hypothesis: "这个人更偏独处充电",
+    evidence: "他说大型聚会后会明显疲惫",
+    prior: 38,
+    hit: 76,
+    falseAlarm: 32,
+    note: "MBTI、职业、地域这类标签会改变先验；真正有用的是后续行为证据能不能区分两类人。",
+  },
+  {
+    id: "stereotype",
+    name: "弱标签偏见",
+    hypothesis: "这个人做事很严谨",
+    evidence: "他的星座/血型被说成“注重细节”",
+    prior: 45,
+    hit: 56,
+    falseAlarm: 49,
+    note: "如果一个标签在目标人群和非目标人群中都差不多常见，它的似然比接近 1，几乎不会提供可靠信息。",
+  },
+  {
+    id: "screening",
+    name: "体检筛查",
+    hypothesis: "真实患病",
+    evidence: "筛查结果阳性",
+    prior: 2,
+    hit: 98,
+    falseAlarm: 5,
+    note: "低基础比例会放大误报的影响。阳性结果需要结合先验和复检，而不是直接等同于患病。",
+  },
+];
+
+function BayesLabelLab() {
+  const [scenarioId, setScenarioId] = useState("label");
+  const scenario = bayesScenarios.find((item) => item.id === scenarioId) ?? bayesScenarios[0];
+  const [prior, setPrior] = useState(scenario.prior);
+  const [hit, setHit] = useState(scenario.hit);
+  const [falseAlarm, setFalseAlarm] = useState(scenario.falseAlarm);
+
+  function chooseScenario(item: BayesScenario) {
+    setScenarioId(item.id);
+    setPrior(item.prior);
+    setHit(item.hit);
+    setFalseAlarm(item.falseAlarm);
+  }
+
+  const posterior = bayesPosterior(prior, hit, falseAlarm);
+  const truePositive = Math.round(prior * hit / 100);
+  const falsePositive = Math.round((100 - prior) * falseAlarm / 100);
+  const evidenceTotal = truePositive + falsePositive;
+  const likelihoodRatio = falseAlarm === 0 ? "∞" : (hit / falseAlarm).toFixed(1);
+
+  return (
+    <div className="lab-body bayes-lab">
+      <div className="segmented bayes-tabs">
+        {bayesScenarios.map((item) => (
+          <HeroButton key={item.id} className={scenarioId === item.id ? "active" : ""} onPress={() => chooseScenario(item)}>{item.name}</HeroButton>
+        ))}
+      </div>
+      <div className="bayes-story-card">
+        <span>假设 H</span>
+        <strong>{scenario.hypothesis}</strong>
+        <span>证据 E</span>
+        <strong>{scenario.evidence}</strong>
+        <p>{scenario.note}</p>
+      </div>
+      <Dial label="先验 P(H)" value={prior} setValue={setPrior} />
+      <Dial label="命中率 P(E|H)" value={hit} setValue={setHit} />
+      <Dial label="误报率 P(E|非H)" value={falseAlarm} setValue={setFalseAlarm} />
+      <div className="bayes-equation">
+        <div>
+          <span>后验 P(H|E)</span>
+          <strong>{posterior}%</strong>
+        </div>
+        <p>{hit}% × {prior}% / [{hit}% × {prior}% + {falseAlarm}% × {100 - prior}%]</p>
+      </div>
+      <BayesPopulation prior={prior} hit={hit} falseAlarm={falseAlarm} />
+      <div className="metrics-grid">
+        <Metric label="真正命中" value={`${truePositive}人`} tone="green" />
+        <Metric label="误报混入" value={`${falsePositive}人`} tone={falsePositive > truePositive ? "red" : "amber"} />
+        <Metric label="看到证据者" value={`${evidenceTotal}人`} />
+        <Metric label="似然比" value={`${likelihoodRatio}x`} tone={Number(likelihoodRatio) > 3 ? "green" : "amber"} />
+      </div>
+      <p className="lab-result">
+        贝叶斯判断的关键不是“有标签就相信”，而是看标签和证据到底把可能性空间缩小了多少。强证据会让后验明显上升；弱标签只会制造一种很快但不可靠的心理捷径。
+      </p>
+    </div>
+  );
+}
+
+function bayesPosterior(prior: number, hit: number, falseAlarm: number) {
+  const p = prior / 100;
+  const sensitivity = hit / 100;
+  const fp = falseAlarm / 100;
+  const numerator = p * sensitivity;
+  const denominator = numerator + (1 - p) * fp;
+  return denominator === 0 ? 0 : Math.round((numerator / denominator) * 100);
+}
+
+function BayesPopulation({ prior, hit, falseAlarm }: { prior: number; hit: number; falseAlarm: number }) {
+  const hypothesisCount = Math.round(prior);
+  const truePositiveCount = Math.round(hypothesisCount * hit / 100);
+  const falsePositiveCount = Math.round((100 - hypothesisCount) * falseAlarm / 100);
+  return (
+    <div className="bayes-population" aria-label="100 人贝叶斯样本格">
+      {Array.from({ length: 100 }, (_, index) => {
+        const inHypothesis = index < hypothesisCount;
+        const evidence = inHypothesis ? index < truePositiveCount : index - hypothesisCount < falsePositiveCount;
+        const className = evidence && inHypothesis ? "true-positive" : evidence ? "false-positive" : inHypothesis ? "missed" : "negative";
+        return <i className={className} key={index} title={className} />;
+      })}
+      <div className="bayes-legend">
+        <span><i className="true-positive" />证据命中</span>
+        <span><i className="false-positive" />误报</span>
+        <span><i className="missed" />未被证据捕捉</span>
+      </div>
+    </div>
+  );
 }
 
 function PotentialWellScene({ depth, disturbance, label }: { depth: number; disturbance: number; label: string }) {

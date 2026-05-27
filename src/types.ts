@@ -48,7 +48,8 @@ export type LabType =
   | "science-human"
   | "poison-binary"
   | "huffman-compression"
-  | "color-space";
+  | "color-space"
+  | "bayes-label";
 
 export type SourceReference = {
   chapter: string;
