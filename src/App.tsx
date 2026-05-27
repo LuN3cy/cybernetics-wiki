@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button as HeroButton, Card as HeroCard } from "@heroui/react";
@@ -142,6 +142,10 @@ function App() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
+  const [labPlacement, setLabPlacement] = useState<"side" | "inline">("side");
+  const [manualLabChoice, setManualLabChoice] = useState(false);
+  const [readerAtEnd, setReaderAtEnd] = useState(false);
+  const readerEndRef = useRef<HTMLDivElement | null>(null);
   const activeModules = knowledgeBase === "cybernetics" ? modules : problemModules;
   const activeChapters = knowledgeBase === "cybernetics" ? chapters : (["趣味问题"] as const);
   const activeQuestions = knowledgeBase === "cybernetics" ? allQuestions : problemQuestions;
@@ -152,6 +156,7 @@ function App() {
     return count + (answers[key] === question.answer ? 1 : 0);
   }, 0);
   const currentAnswered = activeModule.quiz.filter((_, index) => answers[`${activeModule.id}-${index}`] !== undefined).length;
+  const quizComplete = activeModule.quiz.length > 0 && currentAnswered === activeModule.quiz.length;
   const appTitle = knowledgeBase === "cybernetics" ? "控制论与科学方法论.pdf" : "有意思的小问题";
 
   function switchKnowledgeBase(next: "cybernetics" | "problems") {
@@ -159,6 +164,34 @@ function App() {
     setActiveIndex(0);
     setMobileRailOpen(false);
   }
+
+  function chooseLabPlacement(next: "side" | "inline") {
+    setLabPlacement(next);
+    setManualLabChoice(true);
+  }
+
+  useEffect(() => {
+    setLabPlacement("side");
+    setManualLabChoice(false);
+    setReaderAtEnd(false);
+  }, [activeModule.id]);
+
+  useEffect(() => {
+    const target = readerEndRef.current;
+    if (!target) return undefined;
+    const observer = new IntersectionObserver(([entry]) => setReaderAtEnd(entry.isIntersecting), {
+      root: null,
+      threshold: 0.6,
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeModule.id, labPlacement]);
+
+  useEffect(() => {
+    if (quizComplete && readerAtEnd && !manualLabChoice) {
+      setLabPlacement("inline");
+    }
+  }, [manualLabChoice, quizComplete, readerAtEnd]);
 
   return (
     <div className="app-shell">
@@ -187,7 +220,7 @@ function App() {
         </div>
       </header>
 
-      <main className="workspace">
+      <main className={`workspace ${labPlacement === "inline" ? "lab-inline-active" : ""}`}>
         {mobileRailOpen && <button className="mobile-rail-backdrop" aria-label="关闭章节导航" onClick={() => setMobileRailOpen(false)} />}
         <aside className={`chapter-rail ${mobileRailOpen ? "open" : ""}`} aria-label="章节进度">
           <div className="rail-header">
@@ -241,13 +274,34 @@ function App() {
             >
               <ModuleReader module={activeModule} />
               <ModuleQuiz module={activeModule} answers={answers} setAnswers={setAnswers} answered={currentAnswered} />
+              <div ref={readerEndRef} className="reader-end-sentinel" aria-hidden="true" />
+              {labPlacement === "inline" && (
+                <section className="inline-lab-panel" id="lab">
+                  <div className="inline-lab-toolbar">
+                    <div>
+                      <strong>实操模拟已移到中间</strong>
+                      <span>{quizComplete ? "你已经完成当前小节测验，可以直接在阅读流里验证概念。" : "当前实验位于阅读中心，适合边看边调参数。"}</span>
+                    </div>
+                    <HeroButton onPress={() => chooseLabPlacement("side")}>放回右侧</HeroButton>
+                  </div>
+                  <LabPanel module={activeModule} />
+                </section>
+              )}
             </motion.article>
           </AnimatePresence>
         </section>
 
-        <aside className="lab-panel" id="lab">
-          <LabPanel module={activeModule} />
-        </aside>
+        {labPlacement === "side" && (
+          <>
+            <div className="lab-placement-switch" aria-label="实验位置切换">
+              <HeroButton onPress={() => chooseLabPlacement("inline")}>移到中间</HeroButton>
+              <span>{quizComplete ? "已完成测验，可集中实操" : "想把实验放到阅读中心时使用"}</span>
+            </div>
+            <aside className="lab-panel" id="lab">
+              <LabPanel module={activeModule} />
+            </aside>
+          </>
+        )}
       </main>
 
       <section className="chapter-summary" id="quiz">

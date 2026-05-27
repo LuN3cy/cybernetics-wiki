@@ -104,6 +104,10 @@ button {
   transition: background 0.28s ease, color 0.28s ease;
 }
 
+html[data-effective-mode="dark"] .app-shell {
+  background: var(--bg);
+}
+
 .topbar {
   min-height: 78px;
   display: flex;
@@ -379,10 +383,15 @@ button {
 
 .workspace {
   display: grid;
-  grid-template-columns: 252px minmax(0, 1fr) minmax(420px, 31vw);
-  gap: 20px;
+  grid-template-columns: 252px minmax(0, 1fr) 44px minmax(420px, 31vw);
+  gap: 14px;
   padding: 14px 24px 18px;
   align-items: start;
+}
+
+.workspace.lab-inline-active {
+  grid-template-columns: 252px minmax(0, 1fr);
+  gap: 20px;
 }
 
 .chapter-rail,
@@ -541,6 +550,98 @@ html[data-effective-mode="dark"] .module-button.active small {
 .reader-panel {
   padding: clamp(22px, 3vw, 36px);
   min-width: 0;
+}
+
+.lab-placement-switch {
+  position: sticky;
+  top: 50%;
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  align-self: start;
+  padding-top: calc(50vh - 140px);
+}
+
+.lab-placement-switch [data-slot="button"] {
+  width: 38px;
+  min-width: 38px;
+  height: auto;
+  min-height: 124px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+  border-radius: 999px;
+  color: var(--on-accent);
+  background: var(--accent-strong);
+  box-shadow: var(--shadow);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.lab-placement-switch span {
+  max-width: 42px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: center;
+  writing-mode: vertical-rl;
+}
+
+.reader-end-sentinel {
+  width: 100%;
+  height: 1px;
+}
+
+.inline-lab-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.inline-lab-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-raised);
+  padding: 12px;
+}
+
+.inline-lab-toolbar strong,
+.inline-lab-toolbar span {
+  display: block;
+}
+
+.inline-lab-toolbar strong {
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.inline-lab-toolbar span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.inline-lab-toolbar [data-slot="button"] {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: var(--text-strong);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-weight: 850;
 }
 
 .reader-heading {
@@ -3401,6 +3502,34 @@ h1 {
     grid-template-columns: 230px minmax(0, 1fr);
   }
 
+  .workspace.lab-inline-active {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+
+  .lab-placement-switch {
+    grid-column: 1 / -1;
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 0;
+  }
+
+  .lab-placement-switch [data-slot="button"] {
+    width: auto;
+    min-width: 0;
+    min-height: 38px;
+    padding-inline: 16px;
+    writing-mode: horizontal-tb;
+  }
+
+  .lab-placement-switch span {
+    max-width: min(420px, 100%);
+    text-align: left;
+    writing-mode: horizontal-tb;
+  }
+
   .lab-panel {
     grid-column: 1 / -1;
     position: static;
@@ -3568,6 +3697,10 @@ h1 {
     overflow: clip;
   }
 
+  .workspace.lab-inline-active {
+    grid-template-columns: 1fr;
+  }
+
   .chapter-rail {
     position: fixed;
     top: 10px;
@@ -3608,6 +3741,20 @@ h1 {
     max-width: 100%;
     border-radius: 24px;
     overflow: clip;
+  }
+
+  .lab-placement-switch {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .lab-placement-switch [data-slot="button"] {
+    flex: 1 1 150px;
+  }
+
+  .lab-placement-switch span {
+    flex: 1 1 220px;
+    text-align: center;
   }
 
   .lab-panel {
@@ -3697,6 +3844,15 @@ h1 {
 
   .slider-row {
     grid-template-columns: 1fr;
+  }
+
+  .inline-lab-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inline-lab-toolbar [data-slot="button"] {
+    width: 100%;
   }
 
   .control-causality {
