@@ -5,6 +5,7 @@ import { Button as HeroButton, Card as HeroCard } from "@heroui/react";
 import {
   Activity,
   Archive,
+  ArrowLeftRight,
   Beaker,
   BookOpen,
   Boxes,
@@ -142,8 +143,8 @@ function App() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
-  const [labPlacement, setLabPlacement] = useState<"side" | "inline">("side");
-  const [manualLabChoice, setManualLabChoice] = useState(false);
+  const [panelLayout, setPanelLayout] = useState<"reader-center" | "lab-center">("reader-center");
+  const [manualPanelSwap, setManualPanelSwap] = useState(false);
   const [readerAtEnd, setReaderAtEnd] = useState(false);
   const readerEndRef = useRef<HTMLDivElement | null>(null);
   const activeModules = knowledgeBase === "cybernetics" ? modules : problemModules;
@@ -165,14 +166,14 @@ function App() {
     setMobileRailOpen(false);
   }
 
-  function chooseLabPlacement(next: "side" | "inline") {
-    setLabPlacement(next);
-    setManualLabChoice(true);
+  function togglePanelLayout() {
+    setPanelLayout((layout) => (layout === "reader-center" ? "lab-center" : "reader-center"));
+    setManualPanelSwap(true);
   }
 
   useEffect(() => {
-    setLabPlacement("side");
-    setManualLabChoice(false);
+    setPanelLayout("reader-center");
+    setManualPanelSwap(false);
     setReaderAtEnd(false);
   }, [activeModule.id]);
 
@@ -185,13 +186,13 @@ function App() {
     });
     observer.observe(target);
     return () => observer.disconnect();
-  }, [activeModule.id, labPlacement]);
+  }, [activeModule.id, panelLayout]);
 
   useEffect(() => {
-    if (quizComplete && readerAtEnd && !manualLabChoice) {
-      setLabPlacement("inline");
+    if (quizComplete && readerAtEnd && !manualPanelSwap) {
+      setPanelLayout("lab-center");
     }
-  }, [manualLabChoice, quizComplete, readerAtEnd]);
+  }, [manualPanelSwap, quizComplete, readerAtEnd]);
 
   return (
     <div className="app-shell">
@@ -220,7 +221,7 @@ function App() {
         </div>
       </header>
 
-      <main className={`workspace ${labPlacement === "inline" ? "lab-inline-active" : ""}`}>
+      <main className={`workspace ${panelLayout === "lab-center" ? "lab-center-active" : ""}`}>
         {mobileRailOpen && <button className="mobile-rail-backdrop" aria-label="关闭章节导航" onClick={() => setMobileRailOpen(false)} />}
         <aside className={`chapter-rail ${mobileRailOpen ? "open" : ""}`} aria-label="章节进度">
           <div className="rail-header">
@@ -275,33 +276,18 @@ function App() {
               <ModuleReader module={activeModule} />
               <ModuleQuiz module={activeModule} answers={answers} setAnswers={setAnswers} answered={currentAnswered} />
               <div ref={readerEndRef} className="reader-end-sentinel" aria-hidden="true" />
-              {labPlacement === "inline" && (
-                <section className="inline-lab-panel" id="lab">
-                  <div className="inline-lab-toolbar">
-                    <div>
-                      <strong>实操模拟已移到中间</strong>
-                      <span>{quizComplete ? "你已经完成当前小节测验，可以直接在阅读流里验证概念。" : "当前实验位于阅读中心，适合边看边调参数。"}</span>
-                    </div>
-                    <HeroButton onPress={() => chooseLabPlacement("side")}>放回右侧</HeroButton>
-                  </div>
-                  <LabPanel module={activeModule} />
-                </section>
-              )}
             </motion.article>
           </AnimatePresence>
         </section>
 
-        {labPlacement === "side" && (
-          <>
-            <div className="lab-placement-switch" aria-label="实验位置切换">
-              <HeroButton onPress={() => chooseLabPlacement("inline")}>移到中间</HeroButton>
-              <span>{quizComplete ? "已完成测验，可集中实操" : "想把实验放到阅读中心时使用"}</span>
-            </div>
-            <aside className="lab-panel" id="lab">
-              <LabPanel module={activeModule} />
-            </aside>
-          </>
-        )}
+        <div className="panel-swap-control" aria-label="交换阅读和实验面板位置" data-tooltip={panelLayout === "reader-center" ? "把实验切到中间" : "把阅读切回中间"}>
+          <HeroButton isIconOnly aria-label={panelLayout === "reader-center" ? "把实验切到中间" : "把阅读切回中间"} onPress={togglePanelLayout}>
+            <ArrowLeftRight size={18} />
+          </HeroButton>
+        </div>
+        <aside className="lab-panel" id="lab">
+          <LabPanel module={activeModule} />
+        </aside>
       </main>
 
       <section className="chapter-summary" id="quiz">
